@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "universal_database_inspector"
+version = "0.1.0"
+description = "Automated MySQL schema decomposition with AI-powered labeling and descriptions."
+requires-python = ">=3.10"
+dependencies = [
+    "mysql-connector-python>=8.0.0",
+    "sqlalchemy>=2.0.0",
+    "pandas>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "use_ai @ git+https://github.com/nailen1/use_ai.git@main",
+]
+
+[project.scripts]
+database-inspector = "universal_database_inspector.__main__:main"
