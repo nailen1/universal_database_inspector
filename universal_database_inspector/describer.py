@@ -13,8 +13,11 @@ from universal_database_inspector.labeler import save_labels
 from use_ai.basis import prompt_to_model
 
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 def _project_root():
-    return os.getcwd()
+    return _PROJECT_ROOT
 
 
 _DATE_PATTERNS = ("dt", "date", "created_at", "updated_at", "last_updated")

@@ -14,8 +14,11 @@ from universal_database_inspector.connection import get_engine
 from use_ai.basis import prompt_to_model
 
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 def _project_root():
-    return os.getcwd()
+    return _PROJECT_ROOT
 
 
 SYSTEM_MESSAGE = (

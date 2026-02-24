@@ -13,8 +13,11 @@ from universal_database_inspector.inspector import load_structure
 from universal_database_inspector.labeler import save_labels
 
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 def _project_root():
-    return os.getcwd()
+    return _PROJECT_ROOT
 
 
 def _group_key(table_name: str) -> str | None:

@@ -13,8 +13,11 @@ from universal_database_inspector.connection import get_engine
 from universal_database_inspector.application import _group_key
 
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 def _project_root():
-    return os.getcwd()
+    return _PROJECT_ROOT
 
 
 _OUTPUT_DIR = "database_structure"

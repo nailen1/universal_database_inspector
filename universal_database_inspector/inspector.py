@@ -10,8 +10,11 @@ import os
 from universal_database_inspector.connection import get_connection, get_list_tables
 
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 def _project_root():
-    return os.getcwd()
+    return _PROJECT_ROOT
 
 
 def load_structure(
