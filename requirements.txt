@@ -2,4 +2,4 @@ mysql-connector-python>=8.0.0
 sqlalchemy>=2.0.0
 pandas>=2.0.0
 python-dotenv>=1.0.0
-use_ai @ git+https://github.com/nailen1/use_ai.git@main
+openai>=1.0.0

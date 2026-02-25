@@ -10,7 +10,7 @@ import os
 from universal_database_inspector.connection import get_connection
 from universal_database_inspector.inspector import load_structure
 from universal_database_inspector.labeler import save_labels
-from use_ai.basis import prompt_to_model
+from universal_database_inspector.ai import prompt_to_model
 
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

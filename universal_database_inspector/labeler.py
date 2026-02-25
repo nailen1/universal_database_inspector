@@ -11,7 +11,7 @@ import re
 import pandas as pd
 
 from universal_database_inspector.connection import get_engine
-from use_ai.basis import prompt_to_model
+from universal_database_inspector.ai import prompt_to_model
 
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
