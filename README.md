@@ -115,4 +115,4 @@ python -m universal_database_inspector --overwrite
 - `sqlalchemy` — ORM 엔진
 - `pandas` — 데이터 처리
 - `python-dotenv` — 환경변수 로딩
-- [`use_ai`](https://github.com/nailen1/use_ai) — OpenAI API 래퍼
+- `openai` — OpenAI API 호출
