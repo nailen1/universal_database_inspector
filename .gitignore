@@ -11,3 +11,4 @@ build/
 .cursor/
 .DS_Store
 database_structure/
+notebooks/
