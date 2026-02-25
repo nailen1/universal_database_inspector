@@ -13,7 +13,7 @@ MySQL 데이터베이스의 스키마를 자동으로 분석하고, AI를 활용
 ## Installation
 
 ```bash
-pip install git+https://github.com/nailen1/universal_database_inspector.git
+pip install universal-database-inspector
 ```
 
 ## Setup
