@@ -17,9 +17,7 @@ def _project_root():
     return _PROJECT_ROOT
 
 
-def load_structure(
-    output_dir: str = "database_structure",
-) -> dict:
+def load_structure(output_dir: str) -> dict:
     """Load a previously saved structure JSON file.
 
     Args:
@@ -38,16 +36,17 @@ def load_structure(
         return json.load(f)
 
 
-def get_columns(table_name: str) -> list[str]:
+def get_columns(table_name: str, config: dict) -> list[str]:
     """Retrieve the list of column names for a given table.
 
     Args:
         table_name: Name of the target table.
+        config: Database configuration dict.
 
     Returns:
         list[str]: Column names in ordinal position order.
     """
-    conn = get_connection()
+    conn = get_connection(config)
     try:
         cursor = conn.cursor()
         cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
@@ -58,15 +57,18 @@ def get_columns(table_name: str) -> list[str]:
         conn.close()
 
 
-def get_structure() -> dict:
+def get_structure(config: dict) -> dict:
     """Collect the full table-column structure for the database.
+
+    Args:
+        config: Database configuration dict.
 
     Returns:
         dict: ``{table_name: [col1, col2, ...], ...}``
     """
-    tables = get_list_tables()
+    tables = get_list_tables(config)
     structure = {}
-    conn = get_connection()
+    conn = get_connection(config)
     try:
         cursor = conn.cursor()
         for table in tables:
@@ -79,12 +81,14 @@ def get_structure() -> dict:
 
 
 def save_structure(
-    output_dir: str = "database_structure",
+    config: dict,
+    output_dir: str,
 ) -> str:
     """Save the table-column structure to a JSON file.
 
     Args:
-        output_dir: Directory to write JSON files into.
+        config: Database configuration dict.
+        output_dir: Directory to write JSON files into (e.g. database_structure/{db_name}).
 
     Returns:
         str: Path to the saved structure file.
@@ -93,7 +97,7 @@ def save_structure(
         output_dir = os.path.join(_project_root(), output_dir)
     os.makedirs(output_dir, exist_ok=True)
 
-    structure = get_structure()
+    structure = get_structure(config)
 
     structure_path = os.path.join(output_dir, "structure.json")
     with open(structure_path, "w", encoding="utf-8") as f:
@@ -102,13 +106,12 @@ def save_structure(
     return structure_path
 
 
-def inspect_all(
-    output_dir: str = "database_structure",
-) -> dict:
+def inspect_all(config: dict, output_dir: str) -> dict:
     """Inspect the database and save the structure JSON file.
 
     Args:
-        output_dir: Directory to write JSON files into.
+        config: Database configuration dict.
+        output_dir: Directory to write JSON files into (e.g. database_structure/{db_name}).
 
     Returns:
         dict: ``{table: [columns]}``
@@ -117,7 +120,7 @@ def inspect_all(
         output_dir = os.path.join(_project_root(), output_dir)
     os.makedirs(output_dir, exist_ok=True)
 
-    structure = get_structure()
+    structure = get_structure(config)
 
     structure_path = os.path.join(output_dir, "structure.json")
     with open(structure_path, "w", encoding="utf-8") as f:

@@ -4,9 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "universal_database_inspector"
-version = "0.1.0"
+version = "0.1.2"
 description = "Automated MySQL schema decomposition with AI-powered labeling and descriptions."
+readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "nailen1" },
+]
+keywords = ["mysql", "schema", "openai", "database", "inspector", "labeling"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+]
 dependencies = [
     "mysql-connector-python>=8.0.0",
     "sqlalchemy>=2.0.0",
@@ -17,3 +32,7 @@ dependencies = [
 
 [project.scripts]
 database-inspector = "universal_database_inspector.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["universal_database_inspector*"]

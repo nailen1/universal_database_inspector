@@ -42,16 +42,17 @@ def _find_date_column(columns: list[str]) -> str | None:
     return None
 
 
-def get_table_stats(table_name: str) -> dict:
+def get_table_stats(table_name: str, config: dict) -> dict:
     """Collect basic statistics for a table.
 
     Args:
         table_name: Name of the target table.
+        config: Database configuration dict.
 
     Returns:
         dict with keys: row_count, column_count, first_date, last_date.
     """
-    conn = get_connection()
+    conn = get_connection(config)
     try:
         cursor = conn.cursor()
 
@@ -137,14 +138,16 @@ def _load_or_create_labels(
 
 def save_description(
     table_name: str,
-    output_dir: str = "database_structure",
+    config: dict,
+    output_dir: str,
     overwrite: bool = False,
 ) -> str:
     """Generate description metadata and save as JSON.
 
     Args:
         table_name: Name of the target table.
-        output_dir: Root output directory.
+        config: Database configuration dict.
+        output_dir: Database output directory (e.g. database_structure/{db_name}).
         overwrite: If False, skip when the file already exists.
 
     Returns:
@@ -152,18 +155,18 @@ def save_description(
     """
     if not os.path.isabs(output_dir):
         output_dir = os.path.join(_project_root(), output_dir)
-    desc_dir = os.path.join(output_dir, "description")
+    desc_dir = os.path.join(output_dir, "descriptions")
     os.makedirs(desc_dir, exist_ok=True)
     desc_path = os.path.join(desc_dir, f"{table_name}.json")
 
     if not overwrite and os.path.exists(desc_path):
         return desc_path
 
-    structure = load_structure()
+    structure = load_structure(output_dir=output_dir)
     columns = structure.get(table_name, [])
 
     labels = _load_or_create_labels(table_name, columns, output_dir)
-    stats = get_table_stats(table_name)
+    stats = get_table_stats(table_name, config)
     description = generate_description(table_name, columns, labels=labels)
 
     result = {
@@ -181,7 +184,8 @@ def save_description(
 
 
 def describe_all_tables(
-    output_dir: str = "database_structure",
+    config: dict,
+    output_dir: str,
     overwrite: bool = False,
 ) -> list[str]:
     """Generate description files for every table.
@@ -190,7 +194,8 @@ def describe_all_tables(
     table for stats and creates a single shared description file.
 
     Args:
-        output_dir: Root output directory.
+        config: Database configuration dict.
+        output_dir: Database output directory (e.g. database_structure/{db_name}).
         overwrite: If False, skip tables whose description file already exists.
 
     Returns:
@@ -214,7 +219,7 @@ def describe_all_tables(
     resolved_dir = output_dir
     if not os.path.isabs(resolved_dir):
         resolved_dir = os.path.join(_project_root(), resolved_dir)
-    desc_dir = os.path.join(resolved_dir, "description")
+    desc_dir = os.path.join(resolved_dir, "descriptions")
     os.makedirs(desc_dir, exist_ok=True)
 
     targets = [(t, t) for t in normal_tables]
@@ -238,7 +243,7 @@ def describe_all_tables(
         print(f"[{i}/{total}] describing: {name}")
         columns = structure.get(actual_table, [])
         labels = _load_or_create_labels(name, columns, output_dir)
-        stats = get_table_stats(actual_table)
+        stats = get_table_stats(actual_table, config)
         description = generate_description(name, columns, labels=labels)
 
         result = {

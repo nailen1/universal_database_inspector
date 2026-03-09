@@ -1,6 +1,6 @@
 """universal_database_inspector - Automated MySQL schema decomposition."""
 
-from universal_database_inspector.config import load_db_config
+from universal_database_inspector.config import load_config, get_output_dir
 from universal_database_inspector.connection import (
     get_engine,
     get_connection,
@@ -32,9 +32,14 @@ from universal_database_inspector.describer import (
 )
 from universal_database_inspector.table import Table
 from universal_database_inspector.scaffold import init_structure
+from universal_database_inspector.utils import get_description_filenames, load_description_file
+from universal_database_inspector.sizer import get_table_dimensions, save_size_json
+from universal_database_inspector.parallel import describe_all_tables_parallel
+
 
 __all__ = [
-    "load_db_config",
+    "load_config",
+    "get_output_dir",
     "get_engine",
     "get_connection",
     "get_list_tables",
@@ -56,4 +61,9 @@ __all__ = [
     "describe_all_tables",
     "Table",
     "init_structure",
+    "get_description_filenames",
+    "load_description_file",
+    "get_table_dimensions",
+    "save_size_json",
+    "describe_all_tables_parallel",
 ]

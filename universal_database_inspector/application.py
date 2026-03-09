@@ -34,7 +34,7 @@ def _group_key(table_name: str) -> str | None:
 
 
 def label_all_tables(
-    output_dir: str = "database_structure",
+    output_dir: str,
     overwrite: bool = False,
 ) -> list[str]:
     """Generate AI labels for every table and save as JSON files.
@@ -43,7 +43,7 @@ def label_all_tables(
     using the union of their columns, saved as ``{prefix}.json``.
 
     Args:
-        output_dir: Root output directory.
+        output_dir: Database output directory (e.g. database_structure/{db_name}).
         overwrite: If False, skip tables whose label file already exists.
 
     Returns:
@@ -86,10 +86,7 @@ def label_all_tables(
             continue
 
         print(f"[{i}/{total}] labeling: {name}")
-        path = save_labels(
-            name, columns,
-            output_dir=output_dir, overwrite=overwrite,
-        )
+        path = save_labels(name, columns, output_dir=output_dir, overwrite=overwrite)
         paths.append(path)
         created += 1
     print(f"done: {created} created, {skipped} skipped (total {total})")
@@ -98,7 +95,7 @@ def label_all_tables(
 
 def load_labels(
     table_name: str,
-    output_dir: str = "database_structure",
+    output_dir: str,
 ) -> dict:
     """Load a saved label JSON file for a table.
 
@@ -107,7 +104,7 @@ def load_labels(
 
     Args:
         table_name: Name of the target table.
-        output_dir: Root output directory.
+        output_dir: Database output directory (e.g. database_structure/{db_name}).
 
     Returns:
         dict: ``{column_name: label}`` mapping.
@@ -126,20 +123,25 @@ def load_labels(
 
 def get_labeled_table(
     table_name: str,
+    config: dict,
     option_label: bool = True,
-    output_dir: str = "database_structure",
+    output_dir: str | None = None,
 ) -> pd.DataFrame:
     """Fetch a table and optionally rename columns to Korean labels.
 
     Args:
         table_name: Name of the target table.
+        config: Database configuration dict.
         option_label: If True, rename columns using the label JSON file.
-        output_dir: Root output directory containing label files.
+        output_dir: Database output directory for label files. Defaults to database_structure/{database}.
 
     Returns:
         pd.DataFrame: Table data with original or labeled column names.
     """
-    engine = get_engine()
+    if output_dir is None:
+        from universal_database_inspector.config import get_output_dir
+        output_dir = get_output_dir(config)
+    engine = get_engine(config)
     query = f"SELECT * FROM `{table_name}`"
     df = pd.read_sql(query, engine)
 
