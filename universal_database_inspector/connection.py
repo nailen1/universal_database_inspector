@@ -1,6 +1,5 @@
 """MySQL connection management and introspection."""
 
-from typing import Optional
 from urllib.parse import quote_plus
 
 import mysql.connector
@@ -8,20 +7,15 @@ from mysql.connector.connection import MySQLConnection
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from universal_database_inspector.config import load_db_config
-
-
-def get_engine(config: Optional[dict] = None) -> Engine:
+def get_engine(config: dict) -> Engine:
     """Create a SQLAlchemy engine for MySQL.
 
     Args:
-        config: Database configuration dict. Loaded from env if omitted.
+        config: Database configuration dict (from load_config).
 
     Returns:
         Engine: A SQLAlchemy engine instance.
     """
-    if config is None:
-        config = load_db_config()
 
     url = (
         f"mysql+mysqlconnector://{quote_plus(config['user'])}:"
@@ -31,17 +25,15 @@ def get_engine(config: Optional[dict] = None) -> Engine:
     return create_engine(url)
 
 
-def get_connection(config: Optional[dict] = None) -> MySQLConnection:
+def get_connection(config: dict) -> MySQLConnection:
     """Create a raw MySQL connection.
 
     Args:
-        config: Database configuration dict. Loaded from env if omitted.
+        config: Database configuration dict (from load_config).
 
     Returns:
         MySQLConnection: An active connection.
     """
-    if config is None:
-        config = load_db_config()
 
     return mysql.connector.connect(
         host=config["host"],
@@ -52,11 +44,11 @@ def get_connection(config: Optional[dict] = None) -> MySQLConnection:
     )
 
 
-def get_list_tables(config: Optional[dict] = None) -> list[str]:
+def get_list_tables(config: dict) -> list[str]:
     """Retrieve the list of tables in the database.
 
     Args:
-        config: Database configuration dict. Loaded from env if omitted.
+        config: Database configuration dict (from load_config).
 
     Returns:
         list[str]: Sorted table names.

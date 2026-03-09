@@ -1,55 +1,65 @@
 """Database configuration loader.
 
-Reads MySQL connection parameters from environment variables:
-DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME.
+Loads MySQL connection parameters from JSON (file path or JSON string/dict).
 """
 
+import json
 import os
 
-from dotenv import load_dotenv
 
-load_dotenv()
+def load_config(source: str | dict) -> dict:
+    """Load database configuration from JSON.
 
-
-def load_db_config() -> dict:
-    """Load MySQL connection configuration from environment variables.
-
-    Required variables::
-
-        DB_HOST
-        DB_PORT
-        DB_USER
-        DB_PASSWORD
-        DB_NAME
+    Args:
+        source: Either:
+            - Path to a JSON file
+            - JSON string (e.g. '{"host":"localhost","database":"mydb",...}')
+            - Dict with keys: host, port, user, password, database
 
     Returns:
         dict with keys: host, port, user, password, database.
 
     Raises:
-        EnvironmentError: If any required variable is missing.
+        FileNotFoundError: If source is a path and the file does not exist.
+        ValueError: If required keys are missing or JSON is invalid.
     """
-    required_keys = {
-        "host": "DB_HOST",
-        "port": "DB_PORT",
-        "user": "DB_USER",
-        "password": "DB_PASSWORD",
-        "database": "DB_NAME",
-    }
-
-    config = {}
-    missing = []
-
-    for key, env_var in required_keys.items():
-        value = os.getenv(env_var)
-        if value is None:
-            missing.append(env_var)
+    if isinstance(source, dict):
+        data = source
+    elif isinstance(source, str):
+        if os.path.isfile(source):
+            with open(source, "r", encoding="utf-8") as f:
+                data = json.load(f)
         else:
-            config[key] = value
+            try:
+                data = json.loads(source)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON: {e}") from e
+    else:
+        raise TypeError("source must be str (path or JSON) or dict")
 
+    required = ["host", "port", "user", "password", "database"]
+    missing = [k for k in required if k not in data or data[k] is None]
     if missing:
-        raise EnvironmentError(
-            f"Missing environment variables: {', '.join(missing)}"
-        )
+        raise ValueError(f"Missing required config keys: {', '.join(missing)}")
 
-    config["port"] = int(config["port"])
+    config = {
+        "host": str(data["host"]),
+        "port": int(data["port"]),
+        "user": str(data["user"]),
+        "password": str(data["password"]),
+        "database": str(data["database"]),
+    }
     return config
+
+
+def get_output_dir(config: dict, base: str = "database_structure") -> str:
+    """Get the output directory for a database (database_structure/{db_name}).
+
+    Args:
+        config: Config dict with "database" key.
+        base: Base directory for all database outputs.
+
+    Returns:
+        str: Path like database_structure/mydb
+    """
+    return os.path.join(base, config["database"])

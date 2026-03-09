@@ -20,15 +20,14 @@ def _project_root():
     return _PROJECT_ROOT
 
 
-_OUTPUT_DIR = "database_structure"
-
-
 class Table:
     """High-level accessor for a single database table.
 
     Usage::
 
-        table = Table("bond")
+        config = load_config("config.json")
+        output_dir = get_output_dir(config)
+        table = Table("bond", config=config, output_dir=output_dir)
         table.columns        # list of column names
         table.labels          # {column: korean_label}
         table.description     # description dict (overview, dates, counts)
@@ -40,9 +39,11 @@ class Table:
     def __init__(
         self,
         table_name: str,
-        output_dir: str = _OUTPUT_DIR,
+        config: dict,
+        output_dir: str,
     ):
         self.table_name = table_name
+        self._config = config
         self._output_dir = output_dir
         self._lookup_name = _group_key(table_name) or table_name
 
@@ -98,7 +99,7 @@ class Table:
         if self._description is not None:
             return self._description
         desc_path = os.path.join(
-            self._resolved_dir, "description", f"{self._lookup_name}.json",
+            self._resolved_dir, "descriptions", f"{self._lookup_name}.json",
         )
         if not os.path.exists(desc_path):
             raise self._not_found("Description", desc_path)
@@ -108,7 +109,7 @@ class Table:
 
     @property
     def df(self) -> pd.DataFrame:
-        engine = get_engine()
+        engine = get_engine(self._config)
         return pd.read_sql(f"SELECT * FROM `{self.table_name}`", engine)
 
     @property
@@ -132,6 +133,7 @@ class Table:
         )
         save_description(
             self.table_name,
+            config=self._config,
             output_dir=self._output_dir,
             overwrite=overwrite,
         )

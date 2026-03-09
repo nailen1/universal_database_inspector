@@ -30,18 +30,20 @@ SYSTEM_MESSAGE = (
 
 def fetch_sample_rows(
     table_name: str,
+    config: dict,
     n: int = 3,
 ) -> pd.DataFrame:
     """Fetch the latest N rows from a table.
 
     Args:
         table_name: Name of the target table.
+        config: Database configuration dict.
         n: Number of rows to fetch.
 
     Returns:
         pd.DataFrame: Sample rows.
     """
-    engine = get_engine()
+    engine = get_engine(config)
     query = f"SELECT * FROM `{table_name}` ORDER BY 1 DESC LIMIT {n}"
     return pd.read_sql(query, engine)
 
@@ -102,7 +104,7 @@ def generate_labels(
 def save_labels(
     table_name: str,
     columns: list[str],
-    output_dir: str = "database_structure",
+    output_dir: str,
     overwrite: bool = False,
 ) -> str:
     """Generate labels via AI and save as ``labels/{table}.json``.
@@ -110,7 +112,7 @@ def save_labels(
     Args:
         table_name: Name of the target table.
         columns: List of column names.
-        output_dir: Root output directory.
+        output_dir: Database output directory (e.g. database_structure/{db_name}).
         overwrite: If False, skip when the file already exists.
 
     Returns:
@@ -134,20 +136,22 @@ def save_labels(
 
 def label_table(
     table_name: str,
-    output_dir: str = "database_structure",
+    config: dict,
+    output_dir: str,
     n: int = 3,
 ) -> dict:
     """Infer column labels using AI with sample data and save as JSON.
 
     Args:
         table_name: Name of the target table.
-        output_dir: Root output directory.
+        config: Database configuration dict.
+        output_dir: Database output directory (e.g. database_structure/{db_name}).
         n: Number of sample rows to fetch.
 
     Returns:
         dict: ``{column_name: label}`` mapping.
     """
-    df = fetch_sample_rows(table_name, n=n)
+    df = fetch_sample_rows(table_name, config=config, n=n)
     prompt = _build_prompt(table_name, list(df.columns), df=df)
     response = prompt_to_model(
         prompt=prompt,

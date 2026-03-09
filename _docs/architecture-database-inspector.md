@@ -16,7 +16,7 @@ DB 접속
                  └─ AI 컬럼 라벨 생성
                       └─ labels/{table}.json 저장
                            └─ AI 테이블 개요 + 통계 생성
-                                └─ description/{table}.json 저장
+                                └─ descriptions/{table}.json 저장
 ```
 
 각 단계는 이전 단계의 산출물을 입력으로 사용한다.
@@ -24,37 +24,49 @@ DB 접속
 
 ---
 
-## 환경 변수
+## 설정
 
-`.env` 파일에 DB 접속 정보를 설정한다.
+### DB 접속 (JSON)
 
+DB 접속 정보는 JSON 파일 또는 JSON 문자열로 전달한다.
+
+```json
+{
+  "host": "localhost",
+  "port": 3306,
+  "user": "root",
+  "password": "your_password",
+  "database": "your_database"
+}
 ```
-DB_HOST=your_host
-DB_PORT=3306
-DB_USER=your_user
-DB_PASSWORD=your_password
-DB_NAME=your_database
 
-OPENAI_API_KEY=your_openai_api_key
-```
+- 파일 경로: `--config config.json`
+- JSON 문자열: `-c '{"host":"...","database":"..."}'`
+
+### OpenAI API Key (.env)
+
+AI 기능 사용 시 `.env`에 `OPENAI_API_KEY`를 설정한다.
 
 ---
 
 ## 출력 폴더 구조
 
-`init_structure()` 또는 첫 실행 시 자동 생성된다.
+각 데이터베이스별로 `database_structure/{db_name}/` 하위에 결과가 저장된다.
+
+`init_structure(db_name=...)` 또는 CLI 첫 실행 시 자동 생성된다.
 
 ```
 database_structure/
-├── structure.json               ← 테이블·컬럼 목록 (자동 생성)
-│
-├── labels/                      ← 컬럼 라벨 (AI 생성)
-│   ├── {table}.json
-│   └── p_ks.json                ← 그룹 테이블 공통 라벨
-│
-└── description/                 ← 테이블 개요·통계 (AI 생성)
-    ├── {table}.json
-    └── p_ks.json                ← 그룹 테이블 공통 개요
+└── {db_name}/                   ← DB별 폴더 (database 필드값)
+    ├── structure.json            ← 테이블·컬럼 목록 (자동 생성)
+    │
+    ├── labels/                   ← 컬럼 라벨 (AI 생성)
+    │   ├── {table}.json
+    │   └── p_ks.json             ← 그룹 테이블 공통 라벨
+    │
+    └── descriptions/             ← 테이블 개요·통계 (AI 생성)
+        ├── {table}.json
+        └── p_ks.json             ← 그룹 테이블 공통 개요
 ```
 
 ---
@@ -85,7 +97,7 @@ database_structure/
 }
 ```
 
-### description/{table}.json
+### descriptions/{table}.json
 
 테이블의 목적 개요와 기본 통계를 담는 딕셔너리.
 
@@ -107,7 +119,7 @@ database_structure/
 universal_database_inspector/
 ├── __init__.py          ← 패키지 public API
 ├── __main__.py          ← CLI 진입점
-├── config.py            ← DB 설정 로드 (.env)
+├── config.py            ← DB 설정 로드 (JSON)
 ├── connection.py        ← MySQL 연결 관리
 ├── scaffold.py          ← 출력 폴더 구조 생성
 ├── inspector.py         ← 구조 조회·저장
@@ -119,7 +131,7 @@ universal_database_inspector/
 
 | 모듈 | 역할 | 주요 API |
 |------|------|----------|
-| `config` | 환경 변수 기반 DB 설정 로드 | `load_db_config()` |
+| `config` | JSON 기반 DB 설정 로드 | `load_config()`, `get_output_dir()` |
 | `connection` | MySQL 연결 생성, 테이블 목록 조회 | `get_engine()`, `get_connection()`, `get_list_tables()` |
 | `scaffold` | 출력 폴더 구조 초기화 | `init_structure()` |
 | `inspector` | 테이블·컬럼 조회, structure JSON 저장 | `get_structure()`, `save_structure()`, `load_structure()`, `inspect_all()` |
@@ -134,21 +146,23 @@ universal_database_inspector/
 ## 실행 방법
 
 ```bash
-# 전체 실행 (기존 파일 스킵)
-python -m universal_database_inspector
+# JSON 파일로 실행
+python -m universal_database_inspector --config config.json
 
 # 기존 파일 덮어쓰기
-python -m universal_database_inspector --overwrite
+python -m universal_database_inspector --config config.json --overwrite
 ```
 
 ### Python API
 
 ```python
-from universal_database_inspector import Table, init_structure
+from universal_database_inspector import load_config, get_output_dir, Table, init_structure
 
-init_structure()          # 폴더 구조 초기 생성
+config = load_config("config.json")
+output_dir = get_output_dir(config)
+init_structure(db_name=config["database"])   # 폴더 구조 초기 생성
 
-table = Table("bond")
+table = Table("bond", config=config, output_dir=output_dir)
 table.columns             # 컬럼 목록
 table.labels              # AI 생성 라벨
 table.description         # 테이블 개요·통계
@@ -183,7 +197,7 @@ table.generate()          # 라벨 + 개요 파일 생성
 ## 의존성 흐름
 
 ```
-.env (DB 접속 정보)
+config.json (DB 접속 정보)
     │
     ▼
 config.py ─→ connection.py (DB 연결·쿼리)
@@ -195,7 +209,7 @@ inspector.py ──→ structure.json
 labeler.py ────→ labels/*.json  (AI + 샘플 데이터)
     │
     ▼
-describer.py ──→ description/*.json  (AI + 라벨 참조 + 통계)
+describer.py ──→ descriptions/*.json  (AI + 라벨 참조 + 통계)
     │
     ▼
 application.py ─→ 일괄 처리 / 라벨 적용 데이터 조회
