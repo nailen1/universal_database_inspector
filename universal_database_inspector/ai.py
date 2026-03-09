@@ -11,9 +11,11 @@ from openai import OpenAI, BadRequestError
 
 DEFAULT_MODEL_NAME = "gpt-4.1"
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def _get_client() -> OpenAI:
-    load_dotenv()
+    load_dotenv(os.path.join(_PROJECT_ROOT, ".env"), override=True)
     api_key = os.getenv("OPENAI_API_KEY")
     if api_key is None:
         raise EnvironmentError("Missing environment variable: OPENAI_API_KEY")

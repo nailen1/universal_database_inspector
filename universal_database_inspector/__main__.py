@@ -4,6 +4,7 @@ Usage::
 
     python -m universal_database_inspector --config config.json
     python -m universal_database_inspector --config config.json --overwrite
+    python -m universal_database_inspector --config config.json --parallel --workers 8
     python -m universal_database_inspector -c '{"host":"localhost","port":3306,"user":"root","password":"pwd","database":"mydb"}'
 """
 
@@ -36,6 +37,17 @@ def main():
         default="database_structure",
         help="Base output directory (default: database_structure).",
     )
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run description generation in parallel using threads.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=8,
+        help="Number of parallel workers (default: 8, only used with --parallel).",
+    )
     args = parser.parse_args()
 
     try:
@@ -53,7 +65,16 @@ def main():
     inspect_all(config=config, output_dir=output_dir)
 
     print("\n[2/2] labels + descriptions")
-    describe_all_tables(config=config, output_dir=output_dir, overwrite=args.overwrite)
+    if args.parallel:
+        from universal_database_inspector.parallel import describe_all_tables_parallel
+        describe_all_tables_parallel(
+            config=config,
+            output_dir=output_dir,
+            overwrite=args.overwrite,
+            max_workers=args.workers,
+        )
+    else:
+        describe_all_tables(config=config, output_dir=output_dir, overwrite=args.overwrite)
 
     print("\nall done.")
 

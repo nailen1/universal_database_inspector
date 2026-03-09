@@ -32,6 +32,10 @@ from universal_database_inspector.describer import (
 )
 from universal_database_inspector.table import Table
 from universal_database_inspector.scaffold import init_structure
+from universal_database_inspector.utils import get_description_filenames, load_description_file
+from universal_database_inspector.sizer import get_table_dimensions, save_size_json
+from universal_database_inspector.parallel import describe_all_tables_parallel
+
 
 __all__ = [
     "load_config",
@@ -57,4 +61,9 @@ __all__ = [
     "describe_all_tables",
     "Table",
     "init_structure",
+    "get_description_filenames",
+    "load_description_file",
+    "get_table_dimensions",
+    "save_size_json",
+    "describe_all_tables_parallel",
 ]
